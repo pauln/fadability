@@ -633,6 +633,11 @@ var readability = {
             
             if(imgCount === 0 && embedCount === 0 && objectCount === 0 && readability.getInnerText(articleParagraphs[i], false) === '') {
                 articleParagraphs[i].parentNode.removeChild(articleParagraphs[i]);
+            } else {
+                var div = document.createElement('div');
+                div.className = 'fadability-p';
+                div.innerHTML = readability.getInnerText(articleParagraphs[i], false);
+                articleParagraphs[i].parentNode.replaceChild(div, articleParagraphs[i]);
             }
         }
 
@@ -642,6 +647,8 @@ var readability = {
         catch (e) {
             dbg("Cleaning innerHTML of breaks failed. This is an IE strict-block-elements bug. Ignoring.: " + e);
         }
+
+        window.setTimeout(function(){readability.linegrad(document.querySelectorAll('div.fadability-p'))}, 10);
     },
     
     /**
@@ -1767,6 +1774,60 @@ var readability = {
     
     removeFlag: function(flag) {
         readability.flags = readability.flags & ~flag;
+    },
+
+    linegrad: function(divs) {
+      console.log('linegrad start');
+      console.log(divs);
+      var layer = document.createElement("div"),
+      text = [],
+      lineHeight = [],
+      div;
+
+      layer.appendChild(document.createTextNode("\u00A0"));
+      layer.className = 'linegrad-container';
+      for (var j=0; j<divs.length; j++) {
+        console.log('linegrad loop a iter');
+          div = divs[j];
+          var l = layer.cloneNode(true);
+          text[j] = div.innerHTML;
+          div.insertBefore(l, div.firstChild);
+          console.log(div.firstChild);
+          
+          lineHeight[j] = l.offsetHeight;
+
+          l.style.position = "absolute";
+          l.style.zIndex = "-1";
+      }
+      console.log(lineHeight);
+      window.addEventListener("resize", (function highlight() {
+          var lineNo = 0;
+          for (var j=0; j<divs.length; j++) {
+              var div = divs[j];
+            console.log('linegrad resize loop iter');
+              var l = divs[j].getElementsByClassName('linegrad-container')[0];
+              while (l.firstChild) {
+                  l.removeChild(l.firstChild);
+              }
+              console.log(Math.ceil(div.offsetHeight / lineHeight[j]));
+              for (var i = 0, n = Math.ceil(div.offsetHeight / lineHeight[j]); i < n; i++) {
+                  var line = document.createElement("div"),
+                      block = document.createElement("div");
+                  
+                  line.style.height = lineHeight[j] + "px";
+                  line.className = lineNo++ % 2 ? "linegrad-odd" : "linegrad-even";
+                  line.style.overflow = "hidden";
+                  
+                  block.innerHTML = text[j];
+                  block.style.marginTop = -i * lineHeight[j] + "px";
+                  
+                  line.appendChild(block);
+                  l.appendChild(line);
+                  console.log(line);
+              }
+          }
+          return highlight;
+      })(), false);
     }
     
 };
