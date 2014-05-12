@@ -589,7 +589,7 @@ var readability = {
             }
         };
 
-        window.typekitInterval = window.setInterval(typekitLoader, 100);
+        //window.typekitInterval = window.setInterval(typekitLoader, 100);
     },
 
     /**
